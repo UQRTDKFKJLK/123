@@ -34,16 +34,16 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.items.ItemHandlerHelper;
 import twilightforest.entity.IBreathAttacker;
-import twilightforest.init.TFItems;
+import twilightforest.init.TFBlocks;
 import twilightforest.init.TFParticleType;
 import twilightforest.init.TFSounds;
-import twilightforest.util.EntityUtil;
 
 public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
     private static final EntityDataAccessor<Boolean> BEAM_FLAG;
@@ -115,10 +115,10 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.onGround() && this.getDeltaMovement().y < 0.0D) {
+        if (!this.onGround && this.getDeltaMovement().y < 0.0D) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.6D, 1.0D));
         }
-        if (this.level().isClientSide()) this.spawnParticles();
+        if (this.level.isClientSide()) this.spawnParticles();
     }
 
     private void spawnParticles() {
@@ -126,7 +126,7 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
             float px = (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.3F;
             float py = this.getEyeHeight() + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.5F;
             float pz = (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.3F;
-            this.level().addParticle(TFParticleType.SNOW_GUARDIAN.get(), this.xOld + (double) px, this.yOld + (double) py, this.zOld + (double) pz, 0.0, 0.0, 0.0);
+            this.level.addParticle(TFParticleType.SNOW_GUARDIAN.get(), this.xOld + (double) px, this.yOld + (double) py, this.zOld + (double) pz, 0.0, 0.0, 0.0);
         }
 
         if (this.isBreathing() && this.isAlive()) {
@@ -148,7 +148,7 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
                 dx *= velocity;
                 dy *= velocity;
                 dz *= velocity;
-                this.level().addParticle(TFParticleType.ICE_BEAM.get(), px, py, pz, dx, dy, dz);
+                this.level.addParticle(TFParticleType.ICE_BEAM.get(), px, py, pz, dx, dy, dz);
             }
         }
 
@@ -162,7 +162,7 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
                 double d = this.getRandom().nextGaussian() * 0.02;
                 double d1 = this.getRandom().nextGaussian() * 0.02;
                 double d2 = this.getRandom().nextGaussian() * 0.02;
-                this.level().addParticle(this.getRandom().nextBoolean() ? ParticleTypes.EXPLOSION : ParticleTypes.POOF, this.getX() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), this.getY() + (double) (this.getRandom().nextFloat() * this.getBbHeight()), this.getZ() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), d, d1, d2);
+                this.level.addParticle(this.getRandom().nextBoolean() ? ParticleTypes.EXPLOSION : ParticleTypes.POOF, this.getX() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), this.getY() + (double) (this.getRandom().nextFloat() * this.getBbHeight()), this.getZ() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), d, d1, d2);
             }
         }
     }
@@ -172,7 +172,7 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
         if (player.getItemInHand(hand).is(Items.FLINT_AND_STEEL) && player == getOwner() && player.isShiftKeyDown()) {
             this.playSound(SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F, 1.0F);
             this.discard();
-            ItemHandlerHelper.giveItemToPlayer(player, TFItems.SNOW_QUEEN_TROPHY.get().getDefaultInstance());
+            ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(TFBlocks.SNOW_QUEEN_TROPHY.get()));
             return InteractionResult.CONSUME;
         }
         return super.mobInteract(player, hand);
@@ -202,24 +202,18 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
     @Override
     public void die(DamageSource cause) {
         super.die(cause);
-        final ItemEntity trophy = new ItemEntity(level(), getX(), getEyeY() + 1.0, getZ(), TFItems.SNOW_QUEEN_TROPHY.get().getDefaultInstance());
-        level().addFreshEntity(trophy);
+        final ItemEntity trophy = new ItemEntity(level, getX(), getEyeY() + 1.0, getZ(), new ItemStack(TFBlocks.SNOW_QUEEN_TROPHY.get()));
+        level.addFreshEntity(trophy);
     }
 
     @Override
     public boolean doHurtTarget(Entity entity) {
-        return entity.hurt(level().damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE));
+        return entity.hurt(DamageSource.mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE));
     }
 
     @Override
-    public void lavaHurt() {
-        if (!this.fireImmune()) {
-            this.setSecondsOnFire(5);
-            if (this.hurt(this.damageSources().lava(), 4.0F)) {
-                this.playSound(SoundEvents.GENERIC_BURN, 0.4F, 2.0F + this.random.nextFloat() * 0.4F);
-                EntityUtil.killLavaAround(this);
-            }
-        }
+    public boolean causeFallDamage(float p_147187_, float p_147188_, DamageSource p_147189_) {
+        return false;
     }
 
     public boolean isBreathing() {
@@ -232,7 +226,7 @@ public class SnowWaifuEntity extends TamableMob implements IBreathAttacker {
 
     public void doBreathAttack(Entity target) {
         final float dmg = SWConfig.snowWaifuBreathAttackDamage.get().floatValue();
-        if (target.hurt(level().damageSources().mobAttack(this), dmg)) heal(dmg / 2);
+        if (target.hurt(DamageSource.mobAttack(this), dmg)) heal(dmg / 2);
     }
 
     @Override

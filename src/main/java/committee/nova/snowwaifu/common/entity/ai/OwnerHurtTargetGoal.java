@@ -21,13 +21,13 @@ public class OwnerHurtTargetGoal extends TargetGoal {
 
     public boolean canUse() {
         if (this.tamed.isTame()) {
-            LivingEntity livingentity = this.tamed.getOwner();
-            if (livingentity == null) {
+            LivingEntity owner = this.tamed.getOwner();
+            if (owner == null) {
                 return false;
             } else {
-                this.ownerLastHurt = livingentity.getLastHurtMob();
-                int i = livingentity.getLastHurtMobTimestamp();
-                return i != this.timestamp && this.canAttack(this.ownerLastHurt, TargetingConditions.DEFAULT) && this.tamed.wantsToAttack(this.ownerLastHurt, livingentity);
+                this.ownerLastHurt = owner.getLastHurtMob();
+                int i = owner.getLastHurtMobTimestamp();
+                return i != this.timestamp && this.canAttack(this.ownerLastHurt, TargetingConditions.DEFAULT) && this.tamed.wantsToAttack(this.ownerLastHurt, owner);
             }
         } else {
             return false;
@@ -36,9 +36,9 @@ public class OwnerHurtTargetGoal extends TargetGoal {
 
     public void start() {
         this.mob.setTarget(this.ownerLastHurt);
-        LivingEntity livingentity = this.tamed.getOwner();
-        if (livingentity != null) {
-            this.timestamp = livingentity.getLastHurtMobTimestamp();
+        LivingEntity owner = this.tamed.getOwner();
+        if (owner != null) {
+            this.timestamp = owner.getLastHurtMobTimestamp();
         }
 
         super.start();

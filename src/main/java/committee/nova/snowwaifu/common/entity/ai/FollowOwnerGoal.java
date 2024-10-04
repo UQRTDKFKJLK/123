@@ -2,7 +2,7 @@ package committee.nova.snowwaifu.common.entity.ai;
 
 import committee.nova.snowwaifu.common.entity.api.TamableMob;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -17,7 +17,7 @@ import java.util.EnumSet;
 
 public class FollowOwnerGoal extends Goal {
     private final TamableMob tamable;
-    private LivingEntity owner;
+    private Entity owner;
     private final LevelReader level;
     private final double speedModifier;
     private final PathNavigation navigation;
@@ -29,7 +29,7 @@ public class FollowOwnerGoal extends Goal {
 
     public FollowOwnerGoal(TamableMob p_25294_, double p_25295_, float p_25296_, float p_25297_, boolean p_25298_) {
         this.tamable = p_25294_;
-        this.level = p_25294_.level();
+        this.level = p_25294_.level;
         this.speedModifier = p_25295_;
         this.navigation = p_25294_.getNavigation();
         this.startDistance = p_25296_;
@@ -42,7 +42,7 @@ public class FollowOwnerGoal extends Goal {
     }
 
     public boolean canUse() {
-        LivingEntity livingentity = this.tamable.getOwner();
+        Entity livingentity = this.tamable.getOwner();
         if (livingentity == null) {
             return false;
         } else if (livingentity.isSpectator()) {

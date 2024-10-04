@@ -1,6 +1,7 @@
 package committee.nova.snowwaifu.common.entity.ai;
 
 import committee.nova.snowwaifu.common.entity.api.TamableMob;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
@@ -21,13 +22,13 @@ public class OwnerHurtByTargetGoal extends TargetGoal {
 
     public boolean canUse() {
         if (this.tamed.isTame()) {
-            LivingEntity livingentity = this.tamed.getOwner();
-            if (livingentity == null) {
+            Entity e = this.tamed.getOwner();
+            if (!(e instanceof LivingEntity livingEntity)) {
                 return false;
             } else {
-                this.ownerLastHurtBy = livingentity.getLastHurtByMob();
-                int i = livingentity.getLastHurtByMobTimestamp();
-                return i != this.timestamp && this.canAttack(this.ownerLastHurtBy, TargetingConditions.DEFAULT) && this.tamed.wantsToAttack(this.ownerLastHurtBy, livingentity);
+                this.ownerLastHurtBy = livingEntity.getLastHurtByMob();
+                int i = livingEntity.getLastHurtByMobTimestamp();
+                return i != this.timestamp && this.canAttack(this.ownerLastHurtBy, TargetingConditions.DEFAULT) && this.tamed.wantsToAttack(this.ownerLastHurtBy, livingEntity);
             }
         } else {
             return false;
@@ -36,9 +37,9 @@ public class OwnerHurtByTargetGoal extends TargetGoal {
 
     public void start() {
         this.mob.setTarget(this.ownerLastHurtBy);
-        LivingEntity livingentity = this.tamed.getOwner();
-        if (livingentity != null) {
-            this.timestamp = livingentity.getLastHurtByMobTimestamp();
+        Entity e = this.tamed.getOwner();
+        if (e instanceof LivingEntity l) {
+            this.timestamp = l.getLastHurtByMobTimestamp();
         }
 
         super.start();

@@ -82,7 +82,7 @@ public abstract class TamableMob extends PathfinderMob implements OwnableEntity 
             double d0 = this.random.nextGaussian() * 0.02D;
             double d1 = this.random.nextGaussian() * 0.02D;
             double d2 = this.random.nextGaussian() * 0.02D;
-            this.level().addParticle(particleoptions, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
+            this.level.addParticle(particleoptions, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
         }
 
     }
@@ -130,6 +130,16 @@ public abstract class TamableMob extends PathfinderMob implements OwnableEntity 
 
     }
 
+    @Nullable
+    public LivingEntity getOwner() {
+        try {
+            UUID uuid = this.getOwnerUUID();
+            return uuid == null ? null : this.level.getPlayerByUUID(uuid);
+        } catch (IllegalArgumentException illegalargumentexception) {
+            return null;
+        }
+    }
+
     @javax.annotation.Nullable
     public UUID getOwnerUUID() {
         return this.entityData.get(DATA_OWNER_UUID_ID).orElse((UUID) null);
@@ -158,9 +168,8 @@ public abstract class TamableMob extends PathfinderMob implements OwnableEntity 
 
     public Team getTeam() {
         if (this.isTame()) {
-            LivingEntity livingentity = this.getOwner();
-            if (livingentity != null) {
-                return livingentity.getTeam();
+            if (this.getOwner() != null) {
+                return this.getOwner().getTeam();
             }
         }
 
@@ -169,13 +178,13 @@ public abstract class TamableMob extends PathfinderMob implements OwnableEntity 
 
     public boolean isAlliedTo(Entity entity) {
         if (this.isTame()) {
-            LivingEntity livingentity = this.getOwner();
-            if (entity == livingentity) {
+            Entity e = this.getOwner();
+            if (entity == e) {
                 return true;
             }
 
-            if (livingentity != null) {
-                return livingentity.isAlliedTo(entity);
+            if (e != null) {
+                return e.isAlliedTo(entity);
             }
         }
 
@@ -187,7 +196,7 @@ public abstract class TamableMob extends PathfinderMob implements OwnableEntity 
         super.die(src);
 
         if (this.dead)
-            if (!this.level().isClientSide && this.level().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
+            if (!this.level.isClientSide && this.level.getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendSystemMessage(deathMessage);
             }
     }

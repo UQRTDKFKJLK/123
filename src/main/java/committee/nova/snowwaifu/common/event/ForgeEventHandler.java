@@ -7,8 +7,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CarvedPumpkinBlock;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.block.state.pattern.BlockPattern;
 import net.minecraft.world.level.block.state.pattern.BlockPatternBuilder;
@@ -26,19 +26,30 @@ public class ForgeEventHandler {
     public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
         if (!event.getPlacedBlock().is(TFBlocks.SNOW_QUEEN_TROPHY.get())) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        final Level level = player.level();
+        final Level level = player.level;
         final BlockPos pos = event.getPos();
         final BlockPattern.BlockPatternMatch match = getSnowwaifuBase().find(level, pos);
         if (match == null) return;
         final SnowWaifuEntity waifu = SWEntities.SNOW_WAIFU.get().create(level);
         if (waifu == null) return;
-        CarvedPumpkinBlock.clearPatternBlocks(level, match);
+        for (int j = 0; j < getSnowwaifuBase().getWidth(); ++j) {
+            for (int k = 0; k < getSnowwaifuBase().getHeight(); ++k) {
+                BlockInWorld blockinworld2 = match.getBlock(j, k, 0);
+                level.setBlock(blockinworld2.getPos(), Blocks.AIR.defaultBlockState(), 2);
+                level.levelEvent(2001, blockinworld2.getPos(), Block.getId(blockinworld2.getState()));
+            }
+        }
         waifu.setHealth(Math.max(1.0F, .2F * waifu.getMaxHealth()));
         waifu.moveTo(pos.getX() + .5, pos.getY() + .05, pos.getZ() + .5);
         waifu.tame(player);
         level.addFreshEntity(waifu);
         level.playSound(null, waifu, SoundEvents.EVOKER_CAST_SPELL, SoundSource.NEUTRAL, 1.0F, 1.0F);
-        CarvedPumpkinBlock.updatePatternBlocks(level, match);
+        for (int i1 = 0; i1 < getSnowwaifuBase().getWidth(); ++i1) {
+            for (int j1 = 0; j1 < getSnowwaifuBase().getHeight(); ++j1) {
+                BlockInWorld blockinworld1 = match.getBlock(i1, j1, 0);
+                level.blockUpdated(blockinworld1.getPos(), Blocks.AIR);
+            }
+        }
     }
 
     private static BlockPattern getSnowwaifuBase() {
